@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Driver Assigned to Your Order</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}body{background:#f0f2f5;font-family:'Segoe UI',Arial,sans-serif}.wrapper{max-width:600px;margin:40px auto;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,.08)}.header{background:#0d1f4f;padding:28px 40px;text-align:center}.header h1{color:#fff;font-size:1.1rem;font-weight:700;letter-spacing:2px}.body{padding:40px}.greeting{font-size:1rem;color:#0d1f4f;font-weight:600;margin-bottom:12px}.text{font-size:.92rem;color:#555;line-height:1.7;margin-bottom:20px}.tracking{text-align:center;background:#0d1f4f;color:#fff;border-radius:12px;padding:20px;margin-bottom:24px}.tracking-label{font-size:.78rem;text-transform:uppercase;letter-spacing:2px;color:rgba(255,255,255,.6);margin-bottom:6px}.tracking-number{font-size:1.6rem;font-weight:800;color:#e8610a;letter-spacing:3px}.driver-card{background:#f4f6fb;border-radius:12px;padding:20px 24px;margin-bottom:20px;display:flex;align-items:center;gap:16px}.driver-avatar{width:52px;height:52px;background:#0d1f4f;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.3rem;font-weight:800;flex-shrink:0}.driver-info h4{font-size:.95rem;color:#0d1f4f;font-weight:700;margin-bottom:4px}.driver-info p{font-size:.85rem;color:#888}.info-box{background:#f4f6fb;border-radius:12px;padding:20px 24px;margin-bottom:20px}.info-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #e8edf7;font-size:.88rem}.info-row:last-child{border-bottom:none}.info-label{color:#888}.info-value{color:#0d1f4f;font-weight:600}.btn{display:inline-block;background:#e8610a;color:#fff;text-decoration:none;padding:12px 32px;border-radius:8px;font-weight:700;font-size:.95rem}.divider{height:1px;background:#eee;margin:28px 0}.footer{background:#f4f6fb;padding:24px 40px;text-align:center}.footer p{font-size:.8rem;color:#aaa;line-height:1.6}.footer a{color:#e8610a;text-decoration:none}
+</style>
+</head>
+<body>
+<div class="wrapper">
+    <div class="header"><h1>LOVELISTICS</h1></div>
+    <div class="body">
+        <p class="greeting">Hi <%= fullName %>,</p>
+        <p class="text">
+            Great news! A driver has been assigned to your order and will pick it up shortly.
+        </p>
+
+        <div class="tracking">
+            <p class="tracking-label">Tracking Number</p>
+            <p class="tracking-number">#<%= trackingNumber %></p>
+        </div>
+
+        <p style="font-size:.85rem;color:#0d1f4f;font-weight:700;margin-bottom:12px;">Your Driver</p>
+        <div class="driver-card">
+            <div class="driver-avatar"><%= driverName.charAt(0).toUpperCase() %></div>
+            <div class="driver-info">
+                <h4><%= driverName %></h4>
+                <p>Assigned Driver · <%= driverPhone %></p>
+            </div>
+        </div>
+
+        <div class="info-box">
+            <div class="info-row">
+                <span class="info-label">Pickup</span>
+                <span class="info-value"><%= pickupAddress %></span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Delivery</span>
+                <span class="info-value"><%= deliveryAddress %></span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Status</span>
+                <span class="info-value" style="color:#0d6efd;">Assigned</span>
+            </div>
+        </div>
+
+        <div style="text-align:center;margin-bottom:20px;">
+            <a href="<%= orderUrl %>" class="btn">Track Live →</a>
+        </div>
+
+        <div class="divider"></div>
+        <p class="text" style="font-size:.82rem;">
+            You'll be notified again when your package is picked up.
+        </p>
+    </div>
+    <div class="footer">
+        <p>Need help? <a href="mailto:support@lovelistics.com">support@lovelistics.com</a><br/>© 2026 LOVELISTICS. All rights reserved.</p>
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Your Order Has Been Picked Up</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}body{background:#f0f2f5;font-family:'Segoe UI',Arial,sans-serif}.wrapper{max-width:600px;margin:40px auto;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,.08)}.header{background:#e8610a;padding:28px 40px;text-align:center}.header h1{color:#fff;font-size:1.1rem;font-weight:700;letter-spacing:2px}.body{padding:40px}.greeting{font-size:1rem;color:#0d1f4f;font-weight:600;margin-bottom:12px}.text{font-size:.92rem;color:#555;line-height:1.7;margin-bottom:20px}.tracking{text-align:center;background:#0d1f4f;color:#fff;border-radius:12px;padding:20px;margin-bottom:24px}.tracking-label{font-size:.78rem;text-transform:uppercase;letter-spacing:2px;color:rgba(255,255,255,.6);margin-bottom:6px}.tracking-number{font-size:1.6rem;font-weight:800;color:#e8610a;letter-spacing:3px}.status-banner{background:#fff4ee;border-left:4px solid #e8610a;border-radius:8px;padding:16px 20px;margin-bottom:24px;display:flex;align-items:center;gap:12px}.status-banner span{font-size:.9rem;color:#e8610a;font-weight:600}.btn{display:inline-block;background:#e8610a;color:#fff;text-decoration:none;padding:12px 32px;border-radius:8px;font-weight:700;font-size:.95rem}.divider{height:1px;background:#eee;margin:28px 0}.footer{background:#f4f6fb;padding:24px 40px;text-align:center}.footer p{font-size:.8rem;color:#aaa;line-height:1.6}.footer a{color:#e8610a;text-decoration:none}
+</style>
+</head>
+<body>
+<div class="wrapper">
+    <div class="header"><h1>LOVELISTICS</h1></div>
+    <div class="body">
+        <p class="greeting">Hi <%= fullName %>,</p>
+        <p class="text">
+            Your package has been picked up by your driver and is now on its way to the delivery address!
+        </p>
+
+        <div class="tracking">
+            <p class="tracking-label">Tracking Number</p>
+            <p class="tracking-number">#<%= trackingNumber %></p>
+        </div>
+
+        <div class="status-banner">
+            <span>📦 Status: Package Picked Up — In Transit Soon</span>
+        </div>
+
+        <p class="text">
+            Driver <strong><%= driverName %></strong> has your package.
+            You can track the live location of your delivery in the app.
+        </p>
+
+        <div style="text-align:center;margin-bottom:20px;">
+            <a href="<%= orderUrl %>" class="btn">Track Live Location →</a>
+        </div>
+
+        <div class="divider"></div>
+        <p class="text" style="font-size:.82rem;">
+            You'll receive another notification once your package is delivered.
+        </p>
+    </div>
+    <div class="footer">
+        <p>Need help? <a href="mailto:support@lovelistics.com">support@lovelistics.com</a><br/>© 2026 LOVELISTICS. All rights reserved.</p>
+    </div>
+</div>
+</body>
+</html>

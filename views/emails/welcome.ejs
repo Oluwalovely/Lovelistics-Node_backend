@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Welcome to LOVELISTICS</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}body{background:#f0f2f5;font-family:'Segoe UI',Arial,sans-serif}.wrapper{max-width:600px;margin:40px auto;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,.08)}.header{background:#0d1f4f;padding:28px 40px;text-align:center}.header h1{color:#fff;font-size:1.1rem;font-weight:700;letter-spacing:2px}.body{padding:40px}.greeting{font-size:1rem;color:#0d1f4f;font-weight:600;margin-bottom:12px}.text{font-size:.92rem;color:#555;line-height:1.7;margin-bottom:20px}.btn{display:inline-block;background:#e8610a;color:#fff;text-decoration:none;padding:12px 32px;border-radius:8px;font-weight:700;font-size:.95rem}.divider{height:1px;background:#eee;margin:28px 0}.feature-row{display:flex;align-items:flex-start;gap:14px;margin-bottom:18px}.feature-icon{width:40px;height:40px;background:#fff4ee;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:1.2rem}.feature-text h4{font-size:.9rem;color:#0d1f4f;font-weight:700;margin-bottom:2px}.feature-text p{font-size:.82rem;color:#888;line-height:1.5}.footer{background:#f4f6fb;padding:24px 40px;text-align:center}.footer p{font-size:.8rem;color:#aaa;line-height:1.6}.footer a{color:#e8610a;text-decoration:none}
+</style>
+</head>
+<body>
+<div class="wrapper">
+    <div class="header"><h1>LOVELISTICS</h1></div>
+    <div class="body">
+        <p class="greeting">Welcome, <%= fullName %>! 🎉</p>
+        <p class="text">
+            Your account has been created successfully. You're now part of the LOVELISTICS family —
+            the new standard in fast, reliable, and transparent delivery.
+        </p>
+
+        <div style="text-align:center;margin-bottom:28px;">
+            <a href="<%= appUrl %>" class="btn">Get Started →</a>
+        </div>
+
+        <div class="divider"></div>
+        <p style="font-size:.85rem;color:#0d1f4f;font-weight:700;margin-bottom:16px;">Here's what you can do:</p>
+
+        <div class="feature-row">
+            <div class="feature-text">
+                <h4>Place Orders Instantly</h4>
+                <p>Create a delivery order in seconds with pickup and drop-off details.</p>
+            </div>
+        </div>
+        <div class="feature-row">
+            <div class="feature-text">
+                <h4>Live GPS Tracking</h4>
+                <p>Watch your driver move in real-time on the map.</p>
+            </div>
+        </div>
+        <div class="feature-row">
+            <div class="feature-text">
+                <h4>Smart Notifications</h4>
+                <p>Get instant alerts at every step of your delivery.</p>
+            </div>
+        </div>
+
+        <div class="divider"></div>
+        <p class="text" style="font-size:.82rem;">
+            Your registered email is <strong><%= email %></strong>.<br/>
+            If you didn't create this account, please contact us immediately.
+        </p>
+    </div>
+    <div class="footer">
+        <p>Need help? <a href="mailto:support@lovelistics.com">support@lovelistics.com</a><br/>© 2026 LOVELISTICS. All rights reserved.</p>
+    </div>
+</div>
+</body>
+</html>
