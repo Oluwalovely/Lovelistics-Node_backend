@@ -1,8 +1,10 @@
 const UserModel = require("../models/user.model")
-const DriverProfile = require("../models/driverProfile.model") // 👈 add this import
+const DriverProfile = require("../models/driverProfile.model") 
 const bcrypt = require("bcrypt")
 const jwt = require("jsonwebtoken")
 const sendEmail = require('../utils/sendEmail');
+const { sendNotification } = require('../utils/sendNotification');
+
 
 const registerUser = async (req, res) => {
     const { fullName, email, password, phone, inviteCode } = req.body
@@ -23,15 +25,15 @@ const registerUser = async (req, res) => {
         const saltround = await bcrypt.genSalt(10)
         const hashedPassword = await bcrypt.hash(password, saltround)
 
-        // ✅ role is now passed in
+        
         const user = await UserModel.create({ fullName, email, password: hashedPassword, phone, role });
 
-        // ✅ create DriverProfile if driver
+        
         if (role === "driver") {
             await DriverProfile.create({ user: user._id });
         }
 
-        // ✅ role added to token payload so middleware can read it
+        
         const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: "5h" })
 
         await sendEmail(email, 'Welcome to LOVELISTICS!', 'welcome', {
@@ -73,19 +75,19 @@ const login = async (req, res) => {
     try {
         const isUser = await UserModel.findOne({ email })
         if (!isUser) {
-            return res.status(404).send({      // ✅ added return so code stops here
+            return res.status(404).send({      
                 message: "Invalid credentials"
             })
         }
 
         const isMatch = await bcrypt.compare(password, isUser.password)
         if (!isMatch) {
-            return res.status(404).send({      // ✅ added return so code stops here
+            return res.status(404).send({      
                 message: "Invalid credentials"
             })
         }
 
-        // ✅ role added to token payload
+        
         const token = jwt.sign({ id: isUser._id, role: isUser.role }, process.env.JWT_SECRET, { expiresIn: "5h" })
 
         res.status(200).send({
@@ -108,7 +110,7 @@ const login = async (req, res) => {
 
 const getAllCustomers = async (req, res) => {
     try {
-        const customers = await UserModel.find({ role: "customer" }).select('_id fullName email phone');
+        const customers = await UserModel.find({ role: "customer" }).select('_id fullName email phone createdAt');
 
         res.status(200).send({
             message: "Customers retrieved successfully",
@@ -125,11 +127,36 @@ const getAllCustomers = async (req, res) => {
 
 const getAllDrivers = async (req, res) => {
     try {
-        const drivers = await UserModel.find({ role: "driver" }).select('_id fullName email phone isAvailable currentLocation');
+        const drivers = await UserModel.find({ role: "driver" })
+            .select('_id fullName email phone isAvailable currentLocation');
+
+        // Fetch all driver profiles and map by user ID
+        const profiles = await DriverProfile.find({
+            user: { $in: drivers.map(d => d._id) }
+        }).lean();
+
+        const profileMap = {};
+        profiles.forEach(p => { profileMap[p.user.toString()] = p; });
+
+        // Merge profile data into each driver
+        const merged = drivers.map(d => {
+            const profile = profileMap[d._id.toString()] || {};
+            return {
+                ...d.toObject(),
+                vehicleType:      profile.vehicleType      || null,
+                vehiclePlate:     profile.vehiclePlate     || null,
+                vehicleColor:     profile.vehicleColor     || null,
+                vehicleModel:     profile.vehicleModel     || null,
+                licenseNumber:    profile.licenseNumber    || null,
+                isApproved:       profile.isApproved       ?? false,
+                activeOrder:      profile.activeOrder      || null,
+                totalDeliveries:  profile.totalDeliveries  || 0,
+            };
+        });
 
         res.status(200).send({
             message: "Drivers retrieved successfully",
-            data: drivers
+            data: merged
         });
     } catch (error) {
         console.log(error);
@@ -140,9 +167,90 @@ const getAllDrivers = async (req, res) => {
     }
 };
 
+const approveDriver = async (req, res) => {
+    try {
+        const { driverId } = req.params;
+
+        const profile = await DriverProfile.findOneAndUpdate(
+            { user: driverId },
+            { $set: { isApproved: true } },
+            { new: true }
+        );
+
+        if (!profile) {
+            return res.status(404).json({
+                success: false,
+                message: 'Driver profile not found'
+            });
+        }
+
+        await sendNotification({
+            recipient: driverId,
+            type: 'ACCOUNT_APPROVED',
+            title: 'Account Approved',
+            message: 'Your driver account has been approved. You can now receive orders.',
+        });
+
+        return res.status(200).json({
+            success: true,
+            message: 'Driver approved successfully',
+            data: profile
+        });
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: 'Error approving driver',
+            error: error.message
+        });
+    }
+};
+
+const updateDriverProfile = async (req, res) => {
+    try {
+        const { vehicleType, vehiclePlate, vehicleModel, vehicleColor, licenseNumber } = req.body;
+
+        const profile = await DriverProfile.findOneAndUpdate(
+            { user: req.user._id },
+            { $set: { vehicleType, vehiclePlate, vehicleModel, vehicleColor, licenseNumber } },
+            { new: true, upsert: true }
+        );
+
+        return res.status(200).json({
+            success: true,
+            message: 'Profile updated successfully',
+            data: profile
+        });
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: 'Error updating profile',
+            error: error.message
+        });
+    }
+};
+
+const getDriverProfile = async (req, res) => {
+    try {
+        const profile = await DriverProfile.findOne({ user: req.user._id });
+        return res.status(200).json({
+            success: true,
+            data: profile || {}
+        });
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: 'Error fetching profile',
+            error: error.message
+        });
+    }
+};
+
 module.exports = {
     registerUser,
     login,
     getAllCustomers,
-    getAllDrivers
+    getAllDrivers,
+    approveDriver,
+    updateDriverProfile, 
+    getDriverProfile
 }

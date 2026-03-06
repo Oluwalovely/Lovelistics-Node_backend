@@ -1,17 +1,14 @@
 const mongoose = require('mongoose');
 const OrderModel = require('../models/orders');
 const UserModel = require('../models/user.model');
+const DriverProfile = require('../models/driverProfile.model');
 const { calculatePrice } = require('../utils/calculatePrice');
 const { generateTrackingNumber } = require('../utils/generateTracking');
 const { sendNotification } = require('../utils/sendNotification');
 const sendEmail = require('../utils/sendEmail');
 
 
-// ═══════════════════════════════════════════════════════════════
-//  CREATE ORDER
-//  Accepts up to 2 images via multipart/form-data.
-//  Notifies admin when a new order is placed.
-// ═══════════════════════════════════════════════════════════════
+
 const createOrder = async (req, res) => {
     try {
         const { pickupAddress, deliveryAddress, packageDescription, weight } = req.body;
@@ -24,9 +21,7 @@ const createOrder = async (req, res) => {
             });
         }
 
-        // ─── Parse addresses ───────────────────────────────────
-        // When sent as multipart/form-data, nested objects come
-        // in as JSON strings so we parse them here
+
         const parsedPickup = typeof pickupAddress === 'string'
             ? JSON.parse(pickupAddress)
             : pickupAddress;
@@ -35,12 +30,11 @@ const createOrder = async (req, res) => {
             ? JSON.parse(deliveryAddress)
             : deliveryAddress;
 
-        // ─── Handle uploaded images ────────────────────────────
-        // req.files is populated by multer if images were uploaded
+
         const images = req.files
             ? req.files.map(file => ({
-                url: file.path,           // Cloudinary secure URL
-                publicId: file.filename,  // Cloudinary public_id
+                url: file.path,
+                publicId: file.filename,
             }))
             : [];
 
@@ -62,17 +56,17 @@ const createOrder = async (req, res) => {
         await newOrder.save();
 
         const customer = await UserModel.findById(customerId).select('fullName email');
-await sendEmail(customer.email, 'Order Placed Successfully', 'order-placed', {
-    fullName: customer.fullName,
-    trackingNumber,
-    pickupAddress: `${parsedPickup.street}, ${parsedPickup.city}`,
-    deliveryAddress: `${parsedDelivery.street}, ${parsedDelivery.city}`,
-    weight,
-    price: price.toLocaleString(),
-    orderUrl: `${process.env.CUSTOMER_APP_URL}/orders/${newOrder._id}`,
-});
+        await sendEmail(customer.email, 'Order Placed Successfully', 'order-placed', {
+            fullName: customer.fullName,
+            trackingNumber,
+            pickupAddress: `${parsedPickup.street}, ${parsedPickup.city}`,
+            deliveryAddress: `${parsedDelivery.street}, ${parsedDelivery.city}`,
+            weight,
+            price: price.toLocaleString(),
+            orderUrl: `${process.env.CUSTOMER_APP_URL}/orders/${newOrder._id}`,
+        });
 
-        // ─── Notify customer ───────────────────────────────────
+
         await sendNotification({
             recipient: customerId,
             type: 'ORDER_PLACED',
@@ -81,7 +75,7 @@ await sendEmail(customer.email, 'Order Placed Successfully', 'order-placed', {
             orderId: newOrder._id
         });
 
-        // ─── Notify all admins ─────────────────────────────────
+
         const admins = await UserModel.find({ role: 'admin' }).select('_id');
         for (const admin of admins) {
             await sendNotification({
@@ -108,10 +102,7 @@ await sendEmail(customer.email, 'Order Placed Successfully', 'order-placed', {
 };
 
 
-// ═══════════════════════════════════════════════════════════════
-//  GET ALL ORDERS
-//  Admin only. Optional filter: GET /orders?status=pending
-// ═══════════════════════════════════════════════════════════════
+
 const getAllOrders = async (req, res) => {
     try {
         const filter = {};
@@ -140,10 +131,6 @@ const getAllOrders = async (req, res) => {
     }
 };
 
-
-// ═══════════════════════════════════════════════════════════════
-//  GET SINGLE ORDER
-// ═══════════════════════════════════════════════════════════════
 const getOrderById = async (req, res) => {
     try {
         const { orderId } = req.params;
@@ -193,11 +180,7 @@ const getOrderById = async (req, res) => {
 };
 
 
-// ═══════════════════════════════════════════════════════════════
-//  UPDATE ORDER STATUS
-//  Driver only. Notifies customer at every step.
-//  assigned → picked-up → in-transit → delivered
-// ═══════════════════════════════════════════════════════════════
+
 const updateOrderStatus = async (req, res) => {
     try {
         const { orderId } = req.params;
@@ -252,35 +235,39 @@ const updateOrderStatus = async (req, res) => {
         if (status === 'delivered') {
             order.deliveredAt = new Date();
             await UserModel.findByIdAndUpdate(order.driver, { isAvailable: true });
+            await DriverProfile.findOneAndUpdate(
+                { user: order.driver },
+                { $inc: { totalDeliveries: 1 } }
+            );
         }
 
         order.status = status;
         await order.save();
 
         const customer = await UserModel.findById(order.customer).select('fullName email');
-const driver = await UserModel.findById(order.driver).select('fullName');
+        const driver = await UserModel.findById(order.driver).select('fullName');
 
-if (status === 'picked-up') {
-    await sendEmail(customer.email, 'Your Package Has Been Picked Up', 'order-picked-up', {
-        fullName: customer.fullName,
-        trackingNumber: order.trackingNumber,
-        driverName: driver.fullName,
-        orderUrl: `${process.env.CUSTOMER_APP_URL}/orders/${order._id}`,
-    });
-}
+        if (status === 'picked-up') {
+            await sendEmail(customer.email, 'Your Package Has Been Picked Up', 'order-picked-up', {
+                fullName: customer.fullName,
+                trackingNumber: order.trackingNumber,
+                driverName: driver.fullName,
+                orderUrl: `${process.env.CUSTOMER_APP_URL}/orders/${order._id}`,
+            });
+        }
 
-if (status === 'delivered') {
-    await sendEmail(customer.email, 'Your Package Has Been Delivered!', 'order-delivered', {
-        fullName: customer.fullName,
-        trackingNumber: order.trackingNumber,
-        driverName: driver.fullName,
-        deliveryAddress: `${order.deliveryAddress.street}, ${order.deliveryAddress.city}`,
-        price: order.price.toLocaleString(),
-        orderUrl: `${process.env.CUSTOMER_APP_URL}/orders/${order._id}`,
-    });
-}
+        if (status === 'delivered') {
+            await sendEmail(customer.email, 'Your Package Has Been Delivered!', 'order-delivered', {
+                fullName: customer.fullName,
+                trackingNumber: order.trackingNumber,
+                driverName: driver.fullName,
+                deliveryAddress: `${order.deliveryAddress.street}, ${order.deliveryAddress.city}`,
+                price: order.price.toLocaleString(),
+                orderUrl: `${process.env.CUSTOMER_APP_URL}/orders/${order._id}`,
+            });
+        }
 
-        // ─── Notify customer at each step ─────────────────────
+
         const notificationMap = {
             'picked-up': {
                 type: 'ORDER_PICKED_UP',
@@ -323,10 +310,7 @@ if (status === 'delivered') {
 };
 
 
-// ═══════════════════════════════════════════════════════════════
-//  ASSIGN DRIVER
-//  Admin only. Notifies both customer and driver.
-// ═══════════════════════════════════════════════════════════════
+
 const assignDriver = async (req, res) => {
     try {
         const { orderId } = req.params;
@@ -376,6 +360,14 @@ const assignDriver = async (req, res) => {
             });
         }
 
+        const driverProfile = await DriverProfile.findOne({ user: driverId });
+        if (!driverProfile?.isApproved) {
+            return res.status(400).json({
+                success: false,
+                message: 'Driver has not been approved yet'
+            });
+        }
+
         const order = await OrderModel.findById(orderId);
 
         if (!order) {
@@ -399,17 +391,17 @@ const assignDriver = async (req, res) => {
         await Promise.all([order.save(), driver.save()]);
 
         const customer = await UserModel.findById(order.customer).select('fullName email');
-await sendEmail(customer.email, 'Driver Assigned to Your Order', 'driver-assigned', {
-    fullName: customer.fullName,
-    trackingNumber: order.trackingNumber,
-    driverName: driver.fullName,
-    driverPhone: driver.phone,
-    pickupAddress: `${order.pickupAddress.street}, ${order.pickupAddress.city}`,
-    deliveryAddress: `${order.deliveryAddress.street}, ${order.deliveryAddress.city}`,
-    orderUrl: `${process.env.CUSTOMER_APP_URL}/orders/${order._id}`,
-});
+        await sendEmail(customer.email, 'Driver Assigned to Your Order', 'driver-assigned', {
+            fullName: customer.fullName,
+            trackingNumber: order.trackingNumber,
+            driverName: driver.fullName,
+            driverPhone: driver.phone,
+            pickupAddress: `${order.pickupAddress.street}, ${order.pickupAddress.city}`,
+            deliveryAddress: `${order.deliveryAddress.street}, ${order.deliveryAddress.city}`,
+            orderUrl: `${process.env.CUSTOMER_APP_URL}/orders/${order._id}`,
+        });
 
-        // ─── Notify customer ───────────────────────────────────
+
         await sendNotification({
             recipient: order.customer,
             type: 'DRIVER_ASSIGNED',
@@ -418,7 +410,7 @@ await sendEmail(customer.email, 'Driver Assigned to Your Order', 'driver-assigne
             orderId: order._id
         });
 
-        // ─── Notify driver ─────────────────────────────────────
+
         await sendNotification({
             recipient: driverId,
             type: 'DRIVER_ASSIGNED',
@@ -446,9 +438,6 @@ await sendEmail(customer.email, 'Driver Assigned to Your Order', 'driver-assigne
 };
 
 
-// ═══════════════════════════════════════════════════════════════
-//  GET ORDERS BY CUSTOMER
-// ═══════════════════════════════════════════════════════════════
 const getOrdersByCustomer = async (req, res) => {
     try {
         const { customerId } = req.params;
@@ -483,9 +472,7 @@ const getOrdersByCustomer = async (req, res) => {
 };
 
 
-// ═══════════════════════════════════════════════════════════════
-//  GET ORDERS BY DRIVER
-// ═══════════════════════════════════════════════════════════════
+
 const getOrdersByDriver = async (req, res) => {
     try {
         const { driverId } = req.params;
@@ -520,10 +507,7 @@ const getOrdersByDriver = async (req, res) => {
 };
 
 
-// ═══════════════════════════════════════════════════════════════
-//  CANCEL ORDER
-//  Notifies all parties when cancelled.
-// ═══════════════════════════════════════════════════════════════
+
 const cancelOrder = async (req, res) => {
     try {
         const { orderId } = req.params;
@@ -556,7 +540,7 @@ const cancelOrder = async (req, res) => {
         if (order.driver) {
             await UserModel.findByIdAndUpdate(order.driver, { isAvailable: true });
 
-            // ─── Notify driver ─────────────────────────────────
+
             await sendNotification({
                 recipient: order.driver,
                 type: 'ORDER_CANCELLED',
@@ -566,7 +550,7 @@ const cancelOrder = async (req, res) => {
             });
         }
 
-        // ─── Notify customer ───────────────────────────────────
+
         await sendNotification({
             recipient: order.customer,
             type: 'ORDER_CANCELLED',
@@ -593,10 +577,6 @@ const cancelOrder = async (req, res) => {
 };
 
 
-// ═══════════════════════════════════════════════════════════════
-//  CONFIRM DELIVERY
-//  Customer only. Notifies admin and driver when confirmed.
-// ═══════════════════════════════════════════════════════════════
 const confirmDelivery = async (req, res) => {
     try {
         const { orderId } = req.params;
@@ -628,7 +608,7 @@ const confirmDelivery = async (req, res) => {
         order.confirmedAt = new Date();
         await order.save();
 
-        // ─── Notify driver ─────────────────────────────────────
+
         await sendNotification({
             recipient: order.driver,
             type: 'ORDER_CONFIRMED',
@@ -637,7 +617,7 @@ const confirmDelivery = async (req, res) => {
             orderId: order._id
         });
 
-        // ─── Notify all admins ─────────────────────────────────
+
         const admins = await UserModel.find({ role: 'admin' }).select('_id');
         for (const admin of admins) {
             await sendNotification({
@@ -664,13 +644,7 @@ const confirmDelivery = async (req, res) => {
     }
 };
 
-// ═══════════════════════════════════════════════════════════════
-//  DELETE ORDER
-//  All roles. Only cancelled or confirmed orders can be deleted.
-//  Customers can only delete their own orders.
-//  Drivers can only delete their own assigned orders.
-//  Admin can delete any order.
-// ═══════════════════════════════════════════════════════════════
+
 const deleteOrder = async (req, res) => {
     try {
         const { orderId } = req.params;
@@ -684,7 +658,6 @@ const deleteOrder = async (req, res) => {
             });
         }
 
-        // ─── Role-based ownership check ────────────────────────
         if (req.user.role === 'customer') {
             if (order.customer.toString() !== req.user._id.toString()) {
                 return res.status(403).json({
@@ -703,7 +676,6 @@ const deleteOrder = async (req, res) => {
             }
         }
 
-        // ─── Only allow deletion of cancelled or confirmed ─────
         if (!['cancelled', 'confirmed'].includes(order.status)) {
             return res.status(400).json({
                 success: false,
@@ -727,10 +699,7 @@ const deleteOrder = async (req, res) => {
     }
 };
 
-// ═══════════════════════════════════════════════════════════════
-//  TRACK ORDER BY TRACKING NUMBER (public — no auth required)
-//  Returns limited info only — no sensitive customer/driver data
-// ═══════════════════════════════════════════════════════════════
+
 const trackOrder = async (req, res) => {
     try {
         const { trackingNumber } = req.params;

@@ -5,7 +5,7 @@ const getMyNotifications = async (req, res) => {
     try {
         const filter = { recipient: req.user._id };
 
-        // Optional: only return unread notifications
+        
         if (req.query.unread === 'true') {
             filter.isRead = false;
         }
@@ -15,7 +15,7 @@ const getMyNotifications = async (req, res) => {
             .sort({ createdAt: -1 })
             .populate('order', 'trackingNumber status');
 
-        // ─── Also return unread count for the bell badge ───────
+        
         const unreadCount = await NotificationModel.countDocuments({
             recipient: req.user._id,
             isRead: false
@@ -52,7 +52,7 @@ const markAsRead = async (req, res) => {
             });
         }
 
-        // ✅ User can only mark their own notifications as read
+        
         if (notification.recipient.toString() !== req.user._id.toString()) {
             return res.status(403).json({
                 success: false,

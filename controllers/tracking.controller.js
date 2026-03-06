@@ -3,20 +3,14 @@ const OrderModel = require('../models/orders');
 const UserModel = require('../models/user.model');
 
 
-// ═══════════════════════════════════════════════════════════════
-//  UPDATE LOCATION
-//  Driver only (enforced in routes).
-//  Called every 5-10 seconds by the driver's app while on delivery.
-//  Each call saves a new location snapshot AND updates the driver's
-//  currentLocation on their User document so it's always fresh.
-// ═══════════════════════════════════════════════════════════════
+
 const updateLocation = async (req, res) => {
     try {
         const { orderId } = req.params;
         const { lat, lng, speed, heading } = req.body;
         const driverId = req.user._id;
 
-        // ─── Validate coordinates ──────────────────────────────
+       
         if (lat === undefined || lng === undefined) {
             return res.status(400).json({
                 success: false,
@@ -24,7 +18,7 @@ const updateLocation = async (req, res) => {
             });
         }
 
-        // ─── Make sure order exists and is assigned to this driver
+        
         const order = await OrderModel.findById(orderId);
 
         if (!order) {
@@ -41,7 +35,7 @@ const updateLocation = async (req, res) => {
             });
         }
 
-        // ─── Only track active orders ──────────────────────────
+        
         const activeStatuses = ['picked-up', 'in-transit'];
         if (!activeStatuses.includes(order.status)) {
             return res.status(400).json({
@@ -50,7 +44,7 @@ const updateLocation = async (req, res) => {
             });
         }
 
-        // ─── Save location snapshot to Tracking ───────────────
+        
         const tracking = await TrackingModel.create({
             order: orderId,
             driver: driverId,
@@ -60,9 +54,7 @@ const updateLocation = async (req, res) => {
             recordedAt: new Date(),
         });
 
-        // ─── Also update driver's currentLocation on User ─────
-        // This means we can always get the latest position in one
-        // query without scanning the whole Tracking collection
+        
         await UserModel.findByIdAndUpdate(driverId, {
             currentLocation: { lat, lng }
         });
@@ -83,18 +75,12 @@ const updateLocation = async (req, res) => {
 };
 
 
-// ═══════════════════════════════════════════════════════════════
-//  GET LATEST LOCATION
-//  Customer and admin (enforced in routes).
-//  Returns only the most recent location ping for an order.
-//  This is what the frontend polls every 5 seconds to move the
-//  driver marker on the map.
-// ═══════════════════════════════════════════════════════════════
+
 const getLatestLocation = async (req, res) => {
     try {
         const { orderId } = req.params;
 
-        // ─── Ownership check for customer ──────────────────────
+        
         if (req.user.role === 'customer') {
             const order = await OrderModel.findById(orderId);
             if (!order) {
@@ -112,7 +98,7 @@ const getLatestLocation = async (req, res) => {
             }
         }
 
-        // ─── Get the most recent ping ──────────────────────────
+        
         const latest = await TrackingModel
             .findOne({ order: orderId })
             .sort({ recordedAt: -1 })
@@ -141,19 +127,14 @@ const getLatestLocation = async (req, res) => {
 };
 
 
-// ═══════════════════════════════════════════════════════════════
-//  GET LOCATION HISTORY
-//  Admin only (enforced in routes).
-//  Returns the full breadcrumb trail for an order.
-//  Useful for reviewing a completed delivery path.
-// ═══════════════════════════════════════════════════════════════
+
 const getLocationHistory = async (req, res) => {
     try {
         const { orderId } = req.params;
 
         const history = await TrackingModel
             .find({ order: orderId })
-            .sort({ recordedAt: 1 }) // oldest first — draws the path in order
+            .sort({ recordedAt: 1 }) 
             .select('location speed heading recordedAt');
 
         return res.status(200).json({
