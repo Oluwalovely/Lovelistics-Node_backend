@@ -2,6 +2,8 @@ const express = require("express");
 const { registerUser, login, getAllCustomers, getAllDrivers, approveDriver, getDriverProfile, updateDriverProfile } = require("../controllers/user.controller");
 const { protect, restrictTo } = require('../middleware/auth.middleware');
 const { forgotPassword, verifyOTP, resetPassword } = require("../controllers/auth.controller");
+const { upload } = require('../config/cloudinary');
+const { updateProfile } = require('../controllers/user.controller');
 const router = express.Router();
 
 
@@ -19,5 +21,9 @@ router.patch('/drivers/profile', protect, restrictTo('driver'), updateDriverProf
 router.post('/forgot-password', forgotPassword);
 router.post('/verify-otp', verifyOTP);
 router.post('/reset-password', resetPassword);
+
+
+
+router.patch('/users/profile', protect, upload.single('avatar'), updateProfile);
 
 module.exports=router;

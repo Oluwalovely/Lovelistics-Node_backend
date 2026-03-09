@@ -4,6 +4,7 @@ const bcrypt = require("bcrypt")
 const jwt = require("jsonwebtoken")
 const sendEmail = require('../utils/sendEmail');
 const { sendNotification } = require('../utils/sendNotification');
+const { cloudinary } = require('../config/cloudinary');
 
 
 const registerUser = async (req, res) => {
@@ -245,6 +246,34 @@ const getDriverProfile = async (req, res) => {
     }
 };
 
+
+const updateProfile = async (req, res) => {
+    try {
+        const { fullName, phone } = req.body;
+        const update = { fullName, phone };
+
+        if (req.file) {
+            // Delete old avatar from Cloudinary if exists
+            const user = await UserModel.findById(req.user._id);
+            if (user.avatarPublicId) {
+                await cloudinary.uploader.destroy(user.avatarPublicId);
+            }
+            update.avatar = req.file.path;
+            update.avatarPublicId = req.file.filename;
+        }
+
+        const updated = await UserModel.findByIdAndUpdate(
+            req.user._id,
+            { $set: update },
+            { returnDocument: 'after' }
+        );
+
+        return res.status(200).json({ success: true, message: 'Profile updated', data: updated });
+    } catch (error) {
+        return res.status(500).json({ success: false, message: error.message });
+    }
+};
+
 module.exports = {
     registerUser,
     login,
@@ -252,5 +281,6 @@ module.exports = {
     getAllDrivers,
     approveDriver,
     updateDriverProfile, 
-    getDriverProfile
+    getDriverProfile,
+    updateProfile
 }
