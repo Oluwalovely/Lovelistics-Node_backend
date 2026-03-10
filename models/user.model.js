@@ -11,6 +11,8 @@ const UserSchema = new mongoose.Schema({
     avatarPublicId: { type: String, default: '' },
     isAvailable: { type: Boolean, default: true }, //for drivers only
     currentLocation: { lat: Number, lng: Number },
+    lastLogin: { type: Date, default: null },
+    lastLoginIp: { type: String, default: null },
 }, { timestamps: true, strict: "throw" })
 
 

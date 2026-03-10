@@ -1,14 +1,14 @@
 const mongoose = require('mongoose');
 
 const NotificationSchema = new mongoose.Schema({
-    // ─── Who receives this notification ───────────────────────
+    // Who receives this notification
     recipient: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
         required: true,
     },
 
-    // ─── What triggered it ────────────────────────────────────
+    //What triggered it 
     type: {
         type: String,
         required: true,
@@ -23,7 +23,7 @@ const NotificationSchema = new mongoose.Schema({
         ]
     },
 
-    // ─── Content ──────────────────────────────────────────────
+    //Content 
     title: {
         type: String,
         required: true,
@@ -34,14 +34,14 @@ const NotificationSchema = new mongoose.Schema({
         required: true,
     },
 
-    // ─── Link back to the order that triggered it ─────────────
+    // Link back to the order that triggered it 
     order: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Order',
         default: null,
     },
 
-    // ─── Read status ──────────────────────────────────────────
+    // Read status
     isRead: {
         type: Boolean,
         default: false,
@@ -54,7 +54,7 @@ const NotificationSchema = new mongoose.Schema({
 
 }, { timestamps: true });
 
-// ─── Indexes ──────────────────────────────────────────────────
+// Indexes 
 NotificationSchema.index({ recipient: 1, isRead: 1 });
 NotificationSchema.index({ recipient: 1, createdAt: -1 });
 

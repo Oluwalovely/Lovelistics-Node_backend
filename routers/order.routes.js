@@ -13,7 +13,8 @@ const {
     cancelOrder,
     confirmDelivery,
     deleteOrder,
-    trackOrder
+    trackOrder,
+    getRevenueStats
 } = require('../controllers/order.controller');
 
 
@@ -27,6 +28,7 @@ router.patch('/orders/:orderId/cancel', protect, restrictTo('admin', 'customer')
 
 router.get('/orders', protect, restrictTo('admin'), getAllOrders);
 router.patch('/orders/:orderId/assign-driver', protect, restrictTo('admin'), assignDriver);
+router.get('/revenue/stats', protect, restrictTo('admin'), getRevenueStats);
 
 
 router.get('/drivers/:driverId/orders', protect, restrictTo('admin', 'driver'), getOrdersByDriver);
