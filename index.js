@@ -5,7 +5,10 @@ const mongoose = require('mongoose')
 const cors = require('cors');
 app.set('view engine', 'ejs');
 const dotenv = require('dotenv');
+const connectDB = require('./database/connectDB');
+
 dotenv.config();
+
 app.use(cors({
     origin: [
         process.env.CUSTOMER_APP_URL,
@@ -22,6 +25,7 @@ const UserRouter = require('./routers/user.routes');
 const OrderRouter = require('./routers/order.routes');
 const trackingRoutes = require('./routers/tracking.routes');
 const notificationRoutes = require('./routers/notification.routes');
+
 
 app.use((err, req, res, next) => {
     if (err.code === 'LIMIT_FILE_SIZE') {
@@ -48,20 +52,30 @@ app.use('/api/v1', notificationRoutes);
 
 
 
-app.listen(process.env.PORT, (err) => {
-    if (err) {
-        console.log('Error in server startup', err);
-    } else {
-        console.log(`Server started successfully`);
-    }
-})
+// app.listen(process.env.PORT, (err) => {
+//     if (err) {
+//         console.log('Error in server startup', err);
+//     } else {
+//         console.log(`Server started successfully`);
+//     }
+// })
 
+if (process.env.NODE_ENV !== 'production') {
+    connectDB().then(() => {
+        app.listen(process.env.PORT || 7001, () => {
+            console.log(`Server running on port ${process.env.PORT || 7001}`);
+        });
+    });
+}
 
 mongoose.connect(process.env.DATABASE_URI)
     .then(() => {
-        console.log('Databse connected succesfully');
+        console.log('Database connected succesfully');
     })
     .catch((err) => {
         console.log('Error connecting to Database', err);
 
     })
+
+
+    module.exports = app;
