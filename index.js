@@ -21,6 +21,14 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.options('{*any}', cors(corsOptions)); // handle preflight requests
 
+app.get('/debug-cors', (req, res) => {
+    res.json({
+        customer: process.env.CUSTOMER_APP_URL,
+        driver: process.env.DRIVER_APP_URL,
+        admin: process.env.ADMIN_APP_URL,
+    });
+});
+
 
 // 3. Body parsers
 app.use(express.urlencoded({ extended: true }));
