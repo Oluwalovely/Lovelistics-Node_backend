@@ -7,7 +7,7 @@ const connectDB = require('./database/connectDB');
 dotenv.config();
 
 // 1. CORS
-app.use(cors({
+const corsOptions = {
     origin: [
         process.env.CUSTOMER_APP_URL,
         process.env.DRIVER_APP_URL,
@@ -16,10 +16,11 @@ app.use(cors({
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
-}));
+};
 
-// 2. Handle preflight requests explicitly
-app.options('*', cors());
+app.use(cors(corsOptions));
+app.options('{*any}', cors(corsOptions)); // handle preflight requests
+
 
 // 3. Body parsers
 app.use(express.urlencoded({ extended: true }));
