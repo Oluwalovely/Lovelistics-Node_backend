@@ -27,6 +27,14 @@ const trackingRoutes = require('./routers/tracking.routes');
 const notificationRoutes = require('./routers/notification.routes');
 
 
+
+
+app.use('/api/v1', UserRouter);
+app.use('/api/v1', OrderRouter);
+app.use('/api/v1', trackingRoutes);
+app.use('/api/v1', notificationRoutes);
+
+
 app.use((err, req, res, next) => {
     if (err.code === 'LIMIT_FILE_SIZE') {
         return res.status(400).json({
@@ -42,14 +50,6 @@ app.use((err, req, res, next) => {
     }
     next(err);
 });
-
-app.use('/api/v1', UserRouter);
-app.use('/api/v1', OrderRouter);
-app.use('/api/v1', trackingRoutes);
-app.use('/api/v1', notificationRoutes);
-
-
-
 
 
 // app.listen(process.env.PORT, (err) => {
@@ -76,6 +76,15 @@ mongoose.connect(process.env.DATABASE_URI)
         console.log('Error connecting to Database', err);
 
     })
+
+
+app.get('/debug-cors', (req, res) => {
+    res.json({
+        customer: process.env.CUSTOMER_APP_URL,
+        driver: process.env.DRIVER_APP_URL,
+        admin: process.env.ADMIN_APP_URL,
+    });
+});
 
 
     module.exports = app;
