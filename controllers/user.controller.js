@@ -166,7 +166,7 @@ const getAllCustomers = async (req, res) => {
 const getAllDrivers = async (req, res) => {
     try {
         const drivers = await UserModel.find({ role: "driver" })
-            .select('_id fullName email phone isAvailable currentLocation');
+            .select('_id fullName email phone avatar isAvailable currentLocation createdAt');
 
         const profiles = await DriverProfile.find({
             user: { $in: drivers.map(d => d._id) }
