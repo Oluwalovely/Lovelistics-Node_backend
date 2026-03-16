@@ -45,13 +45,11 @@ const OrderSchema = new mongoose.Schema(
             required: true,
         },
 
-        // ─── Package Images ───────────────────────────────────
-        // Stores up to 2 Cloudinary image URLs uploaded by customer
         images: {
             type: [
                 {
-                    url: { type: String },       // Cloudinary secure URL
-                    publicId: { type: String },  // Cloudinary public_id (for deletion)
+                    url: { type: String },       
+                    publicId: { type: String },
                 }
             ],
             default: [],

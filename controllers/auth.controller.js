@@ -17,7 +17,7 @@ const forgotPassword = async (req, res) => {
             });
         }
 
-        // Delete any existing OTP for this email
+        
         await OTPModel.deleteMany({ email });
 
         const otp = otpgen.generate(6, {
@@ -85,7 +85,7 @@ const resetPassword = async (req, res) => {
             { new: true }
         );
 
-        // Delete OTP after successful reset
+        
         await OTPModel.deleteMany({ email });
 
         await sendEmail(email, 'Password Reset Successful', 'password-reset-success', {

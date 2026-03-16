@@ -738,7 +738,7 @@ const trackOrder = async (req, res) => {
     }
 };
 
-// ── This is a patch — append getRevenueStats to your existing order.controller.js ──
+
 
 const getRevenueStats = async (req, res) => {
     try {
@@ -748,7 +748,7 @@ const getRevenueStats = async (req, res) => {
         const startOfWeek  = new Date(now); startOfWeek.setDate(now.getDate() - now.getDay());  startOfWeek.setHours(0,0,0,0);
         const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
-        // Only count delivered or confirmed orders as revenue
+        
         const revenueStatuses = ['delivered', 'confirmed'];
 
         const [
@@ -760,31 +760,31 @@ const getRevenueStats = async (req, res) => {
             dailyRevenue,
         ] = await Promise.all([
 
-            // All-time total
+            
             OrderModel.aggregate([
                 { $match: { status: { $in: revenueStatuses } } },
                 { $group: { _id: null, total: { $sum: '$price' }, count: { $sum: 1 } } }
             ]),
 
-            // Today
+
             OrderModel.aggregate([
                 { $match: { status: { $in: revenueStatuses }, createdAt: { $gte: startOfToday } } },
                 { $group: { _id: null, total: { $sum: '$price' }, count: { $sum: 1 } } }
             ]),
 
-            // This week
+            
             OrderModel.aggregate([
                 { $match: { status: { $in: revenueStatuses }, createdAt: { $gte: startOfWeek } } },
                 { $group: { _id: null, total: { $sum: '$price' }, count: { $sum: 1 } } }
             ]),
 
-            // This month
+            
             OrderModel.aggregate([
                 { $match: { status: { $in: revenueStatuses }, createdAt: { $gte: startOfMonth } } },
                 { $group: { _id: null, total: { $sum: '$price' }, count: { $sum: 1 } } }
             ]),
 
-            // Per driver (top 10)
+            
             OrderModel.aggregate([
                 { $match: { status: { $in: revenueStatuses }, driver: { $ne: null } } },
                 { $group: { _id: '$driver', total: { $sum: '$price' }, count: { $sum: 1 } } },
@@ -795,7 +795,7 @@ const getRevenueStats = async (req, res) => {
                 { $project: { _id: 1, total: 1, count: 1, 'driver.fullName': 1, 'driver.email': 1, 'driver.avatar': 1 } }
             ]),
 
-            // Last 30 days daily breakdown
+            
             OrderModel.aggregate([
                 { $match: { status: { $in: revenueStatuses }, createdAt: { $gte: new Date(now - 30 * 24 * 60 * 60 * 1000) } } },
                 { $group: {
