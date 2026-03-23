@@ -21,13 +21,17 @@ const OrderSchema = new mongoose.Schema(
         },
 
         pickupAddress: {
-            street: { type: String, required: true },
-            city: { type: String, required: true },
+            street:      { type: String, required: true },
+            city:        { type: String, required: true },
+            senderName:  { type: String, default: null },
+            senderPhone: { type: String, default: null },
         },
 
         deliveryAddress: {
-            street: { type: String, required: true },
-            city: { type: String, required: true },
+            street:        { type: String, required: true },
+            city:          { type: String, required: true },
+            receiverName:  { type: String, default: null },
+            receiverPhone: { type: String, default: null },
         },
 
         packageDescription: {
@@ -48,7 +52,7 @@ const OrderSchema = new mongoose.Schema(
         images: {
             type: [
                 {
-                    url: { type: String },       
+                    url:      { type: String },
                     publicId: { type: String },
                 }
             ],
