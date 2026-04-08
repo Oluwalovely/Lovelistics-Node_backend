@@ -3,14 +3,13 @@ const OrderModel = require('../models/orders');
 const UserModel = require('../models/user.model');
 
 
-
 const updateLocation = async (req, res) => {
     try {
         const { orderId } = req.params;
         const { lat, lng, speed, heading } = req.body;
         const driverId = req.user._id;
 
-       
+
         if (lat === undefined || lng === undefined) {
             return res.status(400).json({
                 success: false,
@@ -73,7 +72,6 @@ const updateLocation = async (req, res) => {
         });
     }
 };
-
 
 
 const getLatestLocation = async (req, res) => {
