@@ -2,16 +2,15 @@ const cloudinary = require('cloudinary').v2;
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const multer = require('multer');
 
-// ─── Configure Cloudinary ─────────────────────────────────────
+//Configure Cloudinary
 cloudinary.config({
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
     api_key: process.env.CLOUDINARY_API_KEY,
     api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-// ─── Configure Storage ────────────────────────────────────────
+// Configure Storage 
 // Images will be stored in a folder called 'lovelistics/orders'
-// in your Cloudinary account
 const storage = new CloudinaryStorage({
     cloudinary,
     params: {
@@ -21,7 +20,7 @@ const storage = new CloudinaryStorage({
     },
 });
 
-// ─── Multer Upload Middleware ─────────────────────────────────
+// Multer Upload Middleware
 // max 2 images, max 5mb each
 const upload = multer({
     storage,
